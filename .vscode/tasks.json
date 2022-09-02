@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CMake",
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceFolder}/build"
+      },
+      "command": "bash -c \"${input:pickCMakeTask}\"",
+      "group": "build"
+    },
+    {
+      "label": "Run Project",
+      "type": "shell",
+      "command": "${workspaceFolder}/bin/PassMan",
+      "group": "build"
+    },
+    {
+      "label": "Build and Run",
+      "dependsOn": [
+        "CMake",
+        "Run Project"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+  ],
+  "inputs": [
+    {
+      "id": "pickCMakeTask",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Pick CMake task",
+        "options": [
+          [
+            "Configure\t\t",
+            "ccmake .."
+          ],
+          [
+            "Build / Update\t\t",
+            "make install"
+          ],
+          [
+            "Clean\t\t\t",
+            "rm -rf * && rm ${workspaceFolder}/bin/PassMan"
+          ],
+          [
+            "Full\t\t\t",
+            "rm -rf * && rm ${workspaceFolder}/bin/PassMan && ccmake .. && make install"
+          ]
+        ]
+      }
+    }
+  ]
+}

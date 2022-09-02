@@ -14,7 +14,8 @@ offline platforms. Below are the development phases -
 ### **Phase 1 : Console-based UI**
 Every credential is stored as a record in the database at runtime. The database is loaded from (or
 saved to) a file that is generated and used by the application. All user-supported operations are
-performed on the runtime database in memory. Records are objects of the `Record` class.
+performed on the runtime database in memory. Records are objects of the `Record` class.  
+`[ 2 Sep 2022 - ongoing ]`
 
 ---
 ### **Phase 2 : Extending `Record`**
