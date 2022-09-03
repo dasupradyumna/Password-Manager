@@ -1,14 +1,19 @@
+#include "application.hpp"
 #include "ncurses.hpp"
-
-#include <iostream>
+#include "state.hpp"
 
 int main()
 {
   ncur::initscr();
-  ncur::mvprintw(10, 10, "IT WORKS!!");
-  ncur::refresh();
-  int x { ncur::getch() };
+  ncur::cbreak();
+  ncur::noecho();
+
+  auto &app { pm::application::instance() };
+  while (app.get_state() != pm::states::EXIT) {
+    const auto &input { app.display() };
+    app.update(input);
+  }
+
   ncur::endwin();
-  std::cout << (char)x << '\n';
-  return 0;
+  return EXIT_SUCCESS;
 }

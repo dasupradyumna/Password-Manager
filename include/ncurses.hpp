@@ -5,10 +5,14 @@
 
 namespace ncur
 {
+  using ::cbreak;
+  using ::clear;
   using ::endwin;
   using ::getch;
   using ::initscr;
   using ::mvprintw;
+  using ::noecho;
+  using ::printw;
   using ::refresh;
   using ::wgetch;
 }  // namespace ncur

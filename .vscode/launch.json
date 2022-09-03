@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug PassMan",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": ".",
+      "program": "${workspaceFolder}/bin/PassMan",
+      "args": [],
+      "stopAtEntry": true,
+      "preLaunchTask": "CMake",
+    }
+  ]
+}

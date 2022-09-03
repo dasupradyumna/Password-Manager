@@ -17,10 +17,14 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   endif()
 
   list(APPEND SOURCE_FILES
+    src/application.cpp
     src/main.cpp
+    src/state.cpp
   )
   list(APPEND HEADER_FILES
+    include/application.hpp
     include/ncurses.hpp
+    include/state.hpp
   )
 
   add_executable(PassMan ${SOURCE_FILES} ${HEADER_FILES})
