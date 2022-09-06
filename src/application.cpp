@@ -12,8 +12,10 @@ namespace pm
 
   void application::update(const action &act)
   {
-    __m_prev_state = act.m_from;
-    __m_curr_state = act.m_to;
+    if (act.m_from != act.m_to) {
+      __m_prev_state = act.m_from;
+      __m_curr_state = act.m_to;
+    }
   }
 
   action application::display() { return __m_state_space[__m_curr_state]->display(); }

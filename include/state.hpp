@@ -20,6 +20,7 @@ namespace pm
 
   class screen {
   public:
+    screen()          = default;
     virtual ~screen() = default;
     virtual action display();
 
@@ -42,8 +43,15 @@ namespace pm
 
   class select_file : public screen {
   public:
-    select_file();
+    select_file() = default;
     action display() override;
+
+  private:
+    void update_actions();
+    void delete_file(const std::string &filename);
+
+    bool __m_delete;
+    static constexpr std::string_view __m_save_dir { "pmsav" };
   };
 
   class db_open : public screen {

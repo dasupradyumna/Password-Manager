@@ -7,6 +7,7 @@ namespace ncur
 {
   using ::cbreak;
   using ::clear;
+  using ::curs_set;
   using ::endwin;
   using ::getch;
   using ::initscr;

@@ -16,6 +16,13 @@ Every credential is stored as a record in the database at runtime. The database 
 saved to) a file that is generated and used by the application. All user-supported operations are
 performed on the runtime database in memory. Records are objects of the `Record` class.  
 `[ 2 Sep 2022 - ongoing ]`
+#### **Features TODO**
+- ~~Implement application, screens and actions for moving between screens~~
+- ~~Add behavior to "Delete" option in "Select" screen~~
+- Add path to save directory as an option in "Settings" screen
+- Implement database, handle passing from "Select" screen to "Database" screen
+- Add a global storage for the application to share data between screens
+- Consider separating "Delete" screen to derive from "Select" scrren
 
 ---
 ### **Phase 2 : Extending `Record`**
