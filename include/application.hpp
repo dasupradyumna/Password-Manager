@@ -3,8 +3,6 @@
 
 #include "state.hpp"
 
-#include <memory>
-
 namespace pm
 {
   class application {
@@ -13,7 +11,7 @@ namespace pm
 
     state get_state() const;
     void update(const action &act);
-    action display();
+    action get_action();
 
   private:
     application();

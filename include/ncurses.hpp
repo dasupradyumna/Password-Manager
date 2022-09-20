@@ -5,16 +5,28 @@
 
 namespace ncur
 {
+  // start-end functions
   using ::cbreak;
-  using ::clear;
   using ::curs_set;
   using ::endwin;
-  using ::getch;
   using ::initscr;
+  using ::keypad;
+
+  // display functions
+  using ::addch;
+  using ::clear;
+  using ::delch;
+  using ::echo;
+  using ::move;
   using ::mvprintw;
   using ::noecho;
   using ::printw;
   using ::refresh;
+  using ::waddch;
+  using ::wdelch;
+
+  // input functions
+  using ::getch;
   using ::wgetch;
 }  // namespace ncur
 

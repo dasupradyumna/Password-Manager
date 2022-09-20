@@ -18,11 +18,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
   list(APPEND SOURCE_FILES
     src/application.cpp
+    src/database.cpp
     src/main.cpp
     src/state.cpp
   )
   list(APPEND HEADER_FILES
     include/application.hpp
+    include/database.hpp
     include/ncurses.hpp
     include/state.hpp
   )

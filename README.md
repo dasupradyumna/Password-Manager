@@ -10,6 +10,9 @@ offline platforms. Below are the development phases -
 5. Optimization (Data structures and Pipeline)
 6. Multiple users and Network support
 
+#### **Dependencies**
+NCurses
+
 ---
 ### **Phase 1 : Console-based UI**
 Every credential is stored as a record in the database at runtime. The database is loaded from (or
@@ -20,9 +23,16 @@ performed on the runtime database in memory. Records are objects of the `Record`
 - ~~Implement application, screens and actions for moving between screens~~
 - ~~Add behavior to "Delete" option in "Select" screen~~
 - Add path to save directory as an option in "Settings" screen
-- Implement database, handle passing from "Select" screen to "Database" screen
+- ~~Implement database, handle passing from "Select" screen to "Database" screen~~
+- Read from and write to the database (which is linked to a save file)
+- Move databases (core and display) to application, pass around with references
 - Add a global storage for the application to share data between screens
-- Consider separating "Delete" screen to derive from "Select" scrren
+- Abstract away actions and their behavior (currently mixed in with display)
+- Per-field input validation during input and overall entry check before saving
+- Handle varying terminal size
+- Number of entries per page in database screen / scrolling (settings)
+- Consider separating "Delete" screen to derive from "Select" screen
+- Different threads for display and user input
 
 ---
 ### **Phase 2 : Extending `Record`**

@@ -1,16 +1,19 @@
 #ifndef PASSWORD_MANAGER_INCLUDE_STATE_HPP_1662169646
 #define PASSWORD_MANAGER_INCLUDE_STATE_HPP_1662169646
 
-#include <string>
-#include <vector>
+#include "database.hpp"
 
 namespace pm
 {
   using state = int;
 
+  // global variables
+  inline constexpr std::string_view g_save_dir { "pmsav" };
+  extern std::string g_db_name;
+
   namespace states
   {
-    enum : int { EXIT = -1, TITLE, SETTINGS, SELECTFILE, DBOPEN, TOTAL };
+    enum : int { EXIT = -1, TITLE, SETTINGS, SELECTFILE, DBOPEN, ENTRYVIEW, TOTAL };
   }  // namespace states
 
   struct action {
@@ -22,7 +25,8 @@ namespace pm
   public:
     screen()          = default;
     virtual ~screen() = default;
-    virtual action display();
+    void display_actions(const int menu_offset) const;
+    virtual action get_action(const int menu_offset = 0);
 
   protected:
     std::size_t _m_choice;
@@ -32,32 +36,60 @@ namespace pm
   class title : public screen {
   public:
     title();
-    action display() override;
+    action get_action(const int = 0) override;
   };
 
   class settings : public screen {
   public:
     settings();
-    action display() override;
+    action get_action(const int = 0) override;
   };
 
   class select_file : public screen {
   public:
     select_file() = default;
-    action display() override;
+    action get_action(const int = 0) override;
 
   private:
     void update_actions();
     void delete_file(const std::string &filename);
 
     bool __m_delete;
-    static constexpr std::string_view __m_save_dir { "pmsav" };
   };
 
   class db_open : public screen {
   public:
     db_open();
-    action display() override;
+    action get_action(const int = 0) override;
+
+  private:
+    void update_actions();
+    action database_input();
+
+    std::size_t __m_active;
+    bool __m_focus_db, __m_delete;
+    const std::unique_ptr<database> __m_core;
+
+    friend class application;
+  };
+
+  class entry_view : public screen {
+  public:
+    enum { VIEW, NEW, EDIT, DELETE };
+
+    entry_view(const std::unique_ptr<database> &core_db);
+    action get_action(const int = 0) override;
+
+  private:
+    action view_entry(const std::size_t *cursorpos);
+    action input_entry_details(const std::size_t *cursorpos, bool is_new);
+    action delete_entry(const std::size_t *cursorpos);
+
+    int __m_view;
+    database::iterator __m_entry;
+    database *const __m_core;
+
+    friend class application;
   };
 }  // namespace pm
 
