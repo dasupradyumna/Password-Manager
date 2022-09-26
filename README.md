@@ -28,7 +28,7 @@ performed on the runtime database in memory. Records are objects of the `Record`
 - Move databases (core and display) to application, pass around with references
 - Add a global storage for the application to share data between screens
 - Abstract away actions and their behavior (currently mixed in with display)
-- Per-field input validation during input and overall entry check before saving
+- ~~Per-field input validation during input and overall entry check before saving~~
 - Handle varying terminal size
 - Number of entries per page in database screen / scrolling (settings)
 - Consider separating "Delete" screen to derive from "Select" screen

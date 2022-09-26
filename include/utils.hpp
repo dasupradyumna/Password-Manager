@@ -7,6 +7,12 @@
 
 namespace pm
 {
+  // type aliases for readability
+  using cursorloc = int;
+  using unixtime  = unsigned;
+  using selector  = int;
+  using state     = int;
+
   inline std::string unix_to_datetime(const std::time_t timepoint)
   {
     std::stringstream out;

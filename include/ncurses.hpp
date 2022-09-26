@@ -17,6 +17,7 @@ namespace ncur
   using ::clear;
   using ::delch;
   using ::echo;
+  using ::insch;
   using ::move;
   using ::mvprintw;
   using ::noecho;
@@ -24,6 +25,7 @@ namespace ncur
   using ::refresh;
   using ::waddch;
   using ::wdelch;
+  using ::winsch;
 
   // input functions
   using ::getch;

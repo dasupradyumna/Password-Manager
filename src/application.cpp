@@ -64,20 +64,27 @@ namespace pm
     __m_state_space[states::SELECTFILE] = std::make_unique<select_file>();
     __m_state_space[states::DBOPEN]     = std::make_unique<db_open>();
     //////////// XXX TEST CASES
-    entry ent { std::time(nullptr) };
-    ent.m_title    = "Test2";
-    ent.m_website  = "https://tester.com";
-    ent.m_username = "testerman";
-    ent.m_email    = "testerman@tester.com";
-    ent.m_password = "Bullshit";
-    ent.m_notes    = "Because I'm lazy ...";
+    entry ent { static_cast<unixtime>(std::time(nullptr)) };
+    ent.m_title()    = "Test";
+    ent.m_website()  = "https://tester.com";
+    ent.m_username() = "testerman";
+    ent.m_email()    = "testerman@tester.com";
+    ent.m_password() = "Bullshit";
+    ent.m_notes()    = "Because I'm lazy ...";
     DOWNCAST(db_open, states::DBOPEN).__m_core->new_entry(ent);
-    ent.m_title    = "Test";
-    ent.m_website  = "https://tester.com";
-    ent.m_username = "testerman";
-    ent.m_email    = "testerman@tester.com";
-    ent.m_password = "Bullshit";
-    ent.m_notes    = "Because I'm lazy ...";
+    ent.m_title()    = "Test2";
+    ent.m_website()  = "https://testertoo.com";
+    ent.m_username() = "testerwoman";
+    ent.m_email()    = "testerwoman@testertoo.com";
+    ent.m_password() = "Horseshit";
+    ent.m_notes()    = "Because I'm doubly lazy ...";
+    DOWNCAST(db_open, states::DBOPEN).__m_core->new_entry(ent);
+    ent.m_title()    = "Test3";
+    ent.m_website()  = "https://testerthri.com";
+    ent.m_username() = "testerbi";
+    ent.m_email()    = "testerbi@testerthri.com";
+    ent.m_password() = "Donkeyshit";
+    ent.m_notes()    = "Because I'm triply lazy ...";
     DOWNCAST(db_open, states::DBOPEN).__m_core->new_entry(ent);
     ////////////
     __m_state_space[states::ENTRYVIEW] =
