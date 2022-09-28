@@ -10,40 +10,27 @@ namespace pm
 {
   class entry {  // 4*2+32*6 = 200B per instance
   public:
+    entry(const unixtime t) : __m_time_created { t }, __m_time_modified { t } { }
+
     // ACCESS methods for all (except m_time_created - only getter but not setter)
     // Corresponding methods for const instances of the class as well
-
     unixtime m_time_created() const { return __m_time_created; }
+    GETTER_SETTER(unixtime, m_time_modified)
+    GETTER_SETTER(std::string, m_title)
+    GETTER_SETTER(std::string, m_website)
+    GETTER_SETTER(std::string, m_username)
+    GETTER_SETTER(std::string, m_email)
+    GETTER_SETTER(std::string, m_password)
+    GETTER_SETTER(std::string, m_notes)
 
-    unixtime &m_time_modified() { return __m_time_modified; }
+    bool operator==(const entry &other) const
+    {
+      return __m_title == other.__m_title && __m_website == other.__m_website
+          && __m_username == other.__m_username && __m_email == other.__m_email
+          && __m_password == other.__m_password && __m_notes == other.__m_notes;
+    }
 
-    const unixtime &m_time_modified() const { return __m_time_modified; }
-
-    std::string &m_title() { return __m_title; }
-
-    const std::string &m_title() const { return __m_title; }
-
-    std::string &m_website() { return __m_website; }
-
-    const std::string &m_website() const { return __m_website; }
-
-    std::string &m_username() { return __m_username; }
-
-    const std::string &m_username() const { return __m_username; }
-
-    std::string &m_email() { return __m_email; }
-
-    const std::string &m_email() const { return __m_email; }
-
-    std::string &m_password() { return __m_password; }
-
-    const std::string &m_password() const { return __m_password; }
-
-    std::string &m_notes() { return __m_notes; }
-
-    const std::string &m_notes() const { return __m_notes; }
-
-    entry(const unixtime t) : __m_time_created { t }, __m_time_modified { t } { }
+    bool operator!=(const entry &other) const { return !(*this == other); }
 
   private:
     unixtime __m_time_created;
@@ -55,17 +42,26 @@ namespace pm
 
   class database {
   public:
-    using iterator = std::vector<entry>::iterator;
-    database()     = default;
-    ~database()    = default;
+    using iterator       = std::vector<entry>::iterator;
+    using const_iterator = std::vector<entry>::const_iterator;
+    database()           = default;
+    ~database()          = default;
 
-    iterator begin() { return __m_data.begin(); }
+    iterator begin() noexcept { return __m_data.begin(); }
 
-    iterator end() { return __m_data.end(); }
+    const_iterator begin() const noexcept { return __m_data.cbegin(); }
 
-    bool empty() const { return !__m_data.size(); }
+    iterator end() noexcept { return __m_data.end(); }
 
-    const selector size() const { return __m_data.size(); }
+    const_iterator end() const noexcept { return __m_data.cend(); }
+
+    bool empty() const noexcept { return !__m_data.size(); }
+
+    const selector size() const noexcept { return __m_data.size(); }
+
+    entry &operator[](const selector idx) noexcept { return __m_data[idx]; }
+
+    void clear() { __m_data.clear(); }
 
     void new_entry(const entry &ent);
 
@@ -74,8 +70,6 @@ namespace pm
   private:
     std::vector<entry> __m_data;
   };
-
-  void reload_database(database &target);
 }  // namespace pm
 
 #endif

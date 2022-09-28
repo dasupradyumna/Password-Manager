@@ -24,8 +24,8 @@ performed on the runtime database in memory. Records are objects of the `Record`
 - ~~Add behavior to "Delete" option in "Select" screen~~
 - Add path to save directory as an option in "Settings" screen
 - ~~Implement database, handle passing from "Select" screen to "Database" screen~~
-- Read from and write to the database (which is linked to a save file)
-- Move databases (core and display) to application, pass around with references
+- ~~Read from and write to the database (which is linked to a save file)~~
+- ~~Move databases (core and display) to application, pass around with references~~
 - Add a global storage for the application to share data between screens
 - Abstract away actions and their behavior (currently mixed in with display)
 - ~~Per-field input validation during input and overall entry check before saving~~
@@ -33,6 +33,7 @@ performed on the runtime database in memory. Records are objects of the `Record`
 - Number of entries per page in database screen / scrolling (settings)
 - Consider separating "Delete" screen to derive from "Select" screen
 - Different threads for display and user input
+- Enable clipboard usage within the application
 
 ---
 ### **Phase 2 : Extending `Record`**

@@ -10,7 +10,7 @@ int main()
   ncur::curs_set(0);
 
   auto &app { pm::application::instance() };
-  while (app.get_state() != pm::states::EXIT) {
+  while (app.get_state() != pm::states::exit) {
     const auto &input { app.get_action() };
     app.update(input);
   }

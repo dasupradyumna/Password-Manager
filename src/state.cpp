@@ -3,7 +3,6 @@
 #include "ncurses.hpp"
 
 #include <cctype>
-#include <filesystem>
 
 namespace pm
 {
@@ -36,7 +35,8 @@ namespace pm
         case 'k': _m_choice = (sz + _m_choice - 1) % sz; break;
         case '\t':
           if (menu_offset == 46)
-            return action { "", states::DBOPEN, states::DBOPEN };  // HACK improve design
+            return action { "", states::db_open,
+              states::db_open };  // HACK improve design
           break;
         case '\n': return _m_actions[_m_choice];
       }
@@ -45,9 +45,9 @@ namespace pm
 
   title::title() : screen {}
   {
-    _m_actions.push_back(action { "Select file", states::TITLE, states::SELECTFILE });
-    _m_actions.push_back(action { "Settings", states::TITLE, states::SETTINGS });
-    _m_actions.push_back(action { "Exit", states::TITLE, states::EXIT });
+    _m_actions.push_back(action { "Select file", states::title, states::select_file });
+    _m_actions.push_back(action { "Settings", states::title, states::settings });
+    _m_actions.push_back(action { "Exit", states::title, states::exit });
   }
 
   action title::get_action(const cursorloc)
@@ -61,7 +61,7 @@ namespace pm
 
   settings::settings() : screen {}
   {
-    _m_actions.push_back(action { "Back", states::SETTINGS, states::TITLE });
+    _m_actions.push_back(action { "Back", states::settings, states::title });
   }
 
   action settings::get_action(const cursorloc)
@@ -100,17 +100,17 @@ namespace pm
       for (const auto &entry : filesystem::directory_iterator { g_save_dir }) {
         stringstream act;
         act << _m_actions.size() + 1 << ". " << entry.path().filename().string();
-        _m_actions.push_back(action { act.str(), states::SELECTFILE,
-          __m_delete ? states::SELECTFILE : states::DBOPEN });
+        _m_actions.push_back(action { act.str(), states::select_file,
+          __m_delete ? states::select_file : states::db_open });
       }
 
     if (!__m_delete) {
-      _m_actions.push_back(action { "New File", states::SELECTFILE, states::DBOPEN });
+      _m_actions.push_back(action { "New File", states::select_file, states::db_open });
       _m_actions.push_back(
-        action { "Delete Files", states::SELECTFILE, states::SELECTFILE });
+        action { "Delete Files", states::select_file, states::select_file });
     }
     _m_actions.push_back(action {
-      "Back", states::SELECTFILE, __m_delete ? states::SELECTFILE : states::TITLE });
+      "Back", states::select_file, __m_delete ? states::select_file : states::title });
   }
 
   void select_file::delete_file(const std::string &option)
@@ -131,24 +131,51 @@ namespace pm
     }
   }
 
-  db_open::db_open()
+  db_open::db_open(database &core_db)
     : screen {},
       __m_active { 0 },
       __m_focus_db { false },
       __m_delete { false },
-      __m_core { std::make_unique<database>() }
+      __m_core { core_db }
   { }
 
   void db_open::update_actions()
   {
     _m_actions.clear();
+    _m_choice = 0;
     if (__m_delete)
-      _m_actions.push_back(action { "Back", states::DBOPEN, states::DBOPEN });
-    else {
-      _m_actions.push_back(action { "New", states::DBOPEN, states::ENTRYVIEW });
-      _m_actions.push_back(action { "Delete", states::DBOPEN, states::DBOPEN });
-      _m_actions.push_back(action { "Back", states::DBOPEN, states::SELECTFILE });
+      _m_actions.push_back(action { "Back", states::db_open, states::db_open });
+    else if (__m_save) {
+      _m_actions.push_back(action { "Yes", states::db_open, states::db_open });
+      _m_actions.push_back(action { "No", states::db_open, states::db_open });
+    } else {
+      _m_actions.push_back(action { "New", states::db_open, states::entry_view });
+      _m_actions.push_back(action { "Delete", states::db_open, states::db_open });
+      _m_actions.push_back(action { "Save", states::db_open, states::db_open });
+      _m_actions.push_back(action { "Back", states::db_open, states::select_file });
     }
+  }
+
+  void db_open::name_new_database()
+  {
+    ncur::curs_set(1);
+    std::string name {};
+    int inp {};
+    while (inp != '\n') {
+      ncur::mvprintw(
+        1, 0, "|                                                          |");
+      const auto title { name.empty() ? "< Name the new database >" : name };
+      ncur::mvprintw(1, 31 - title.size() / 2, "%s", title.c_str());
+      ncur::refresh();
+
+      inp = ncur::getch();
+      if (name.size() < 20 && (std::isalnum(inp) || inp == '-' || inp == '_'))
+        name.push_back(inp);
+      else if (inp == KEY_BACKSPACE && !name.empty())
+        name.pop_back();
+    }
+    g_db_name = name;
+    ncur::curs_set(0);
   }
 
   action db_open::get_action(const cursorloc)
@@ -158,11 +185,13 @@ namespace pm
     ncur::printw("+----------------------------------------------------------+\n");
     ncur::printw("|                                                          |\n");
     ncur::printw("+---------------------------------------------+------------+\n");
-    if (__m_core->empty())
+    if (__m_save) {  // Save mode
       __m_focus_db = false;
-    else {
-      ncur::printw("|\n|");
-      __m_active -= (__m_active == __m_core->size());
+      ncur::mvprintw(1, 51, "(Save?)");
+    } else if (__m_core.empty())  // TAB switch
+      __m_focus_db = false;
+    else {  // View or Delete mode
+      __m_active -= (__m_active == __m_core.size());
       if (__m_delete)
         ncur::mvprintw(1, 50, "(Delete)");
       else
@@ -172,7 +201,7 @@ namespace pm
       1, 30 - g_db_name.size() / 2, " %s ", get_upper_case(g_db_name).c_str());
 
     cursorloc i { 0 };
-    for (const auto &ent : *__m_core) {
+    for (const auto &ent : __m_core) {
       ncur::mvprintw(3 * ++i, 0, "|\n|");
       std::stringstream display;
       display << ent.m_title() << "  ( " << ent.m_website() << " )";
@@ -184,12 +213,18 @@ namespace pm
       ncur::mvprintw(3 * i + 2, 0, "| - - - - - - - - - - - - - - - - - - - - - - |");
     }
     ncur::mvprintw(
-      3 * __m_core->size() + 2, 0, "+---------------------------------------------+");
+      3 * __m_core.size() + 2, 0, "+---------------------------------------------+");
 
     const auto &choice { __m_focus_db ? database_input() : screen::get_action(46) };
     if (choice.m_description.empty())
       __m_focus_db = !__m_focus_db;
-    else if (choice.m_description == "Delete")
+    else if (choice.m_description == "Save")
+      __m_save = true;
+    else if (__m_save) {
+      __m_save = false;
+      if (g_db_name == "[ UNNAMED ]" && choice.m_description == "Yes")
+        name_new_database();
+    } else if (choice.m_description == "Delete")
       __m_focus_db = __m_delete = true;
     else if (choice.m_description == "Back" && __m_delete)
       __m_delete = false;
@@ -198,7 +233,7 @@ namespace pm
 
   action db_open::database_input()
   {
-    const auto sz { static_cast<selector>(__m_core->size()) };
+    const auto sz { static_cast<selector>(__m_core.size()) };
     selector prev_active { __m_active };
     _m_choice = -1;  // HACK to make menu cursor invisible. Improve design
     screen::display_actions(46);
@@ -211,20 +246,20 @@ namespace pm
       switch (ncur::getch()) {
         case 'j': __m_active = (__m_active + 1) % sz; break;
         case 'k': __m_active = (sz + __m_active - 1) % sz; break;
-        case '\t': _m_choice = 0; return action { "", states::DBOPEN, states::DBOPEN };
+        case '\t': _m_choice = 0; return action { "", states::db_open, states::db_open };
         case '\n':
           _m_choice = 0;
-          return action { std::to_string(__m_active), states::DBOPEN, states::ENTRYVIEW };
+          return action { std::to_string(__m_active), states::db_open,
+            states::entry_view };
       }
     }
   }
 
-  entry_view::entry_view(const std::unique_ptr<database> &core_db)
-    : screen {}, __m_core { core_db.get() }
+  entry_view::entry_view(database &core_db) : screen {}, __m_core { core_db }
   {
-    _m_actions.push_back(action { "Edit", states::ENTRYVIEW, states::ENTRYVIEW });
-    _m_actions.push_back(action { "Delete", states::ENTRYVIEW, states::ENTRYVIEW });
-    _m_actions.push_back(action { "Back", states::ENTRYVIEW, states::DBOPEN });
+    _m_actions.push_back(action { "Edit", states::entry_view, states::entry_view });
+    _m_actions.push_back(action { "Delete", states::entry_view, states::entry_view });
+    _m_actions.push_back(action { "Back", states::entry_view, states::db_open });
   }
 
   action entry_view::get_action(const cursorloc)
@@ -233,7 +268,7 @@ namespace pm
     ncur::printw("+----------------------------------------------------------+\n");
     ncur::printw("|                                                          |\n");
     ncur::printw("+----------------------------------------------------------+\n|");
-    const std::string title { __m_view == NEW ? "[ UNNAMED ]" : __m_entry->m_title() };
+    const std::string title { __m_view == NEW ? "[ NEW ENTRY ]" : __m_entry->m_title() };
     ncur::mvprintw(1, 30 - title.size() / 2, " %s ", get_upper_case(title).c_str());
     ncur::mvprintw(4, 0, "|   Created :");
     ncur::mvprintw(5, 0, "|   Modified :");
@@ -353,7 +388,7 @@ namespace pm
         if (curr == 2) {  // Update heading when title field is modified
           ncur::mvprintw(
             1, 0, "|                                                          |");
-          const std::string title { input.empty() ? "[ UNNAMED ]" : input };
+          const std::string title { input.empty() ? "[ NEW ENTRY ]" : input };
           ncur::mvprintw(1, 30 - title.size() / 2, " %s ", get_upper_case(title).c_str());
           ncur::move(curr + 4, loc);
         }
@@ -387,11 +422,13 @@ namespace pm
 
     if (curr == 0) {  // Save option selected
       if (is_new)
-        __m_core->new_entry(ent);
-      else
-        *__m_entry = ent;
+        __m_core.new_entry(ent);
+      else if (ent != *__m_entry) {
+        ent.m_time_modified() = static_cast<unixtime>(std::time(nullptr));
+        *__m_entry            = ent;
+      }
     }
-    return action { "Back", states::ENTRYVIEW, states::DBOPEN };
+    return action { "Back", states::entry_view, states::db_open };
   }
 
   action entry_view::delete_entry(const cursorloc *cursorpos)
@@ -414,8 +451,8 @@ namespace pm
     ncur::refresh();
 
     while (true) switch (ncur::getch()) {
-        case 'y': __m_core->delete_entry(__m_entry);
-        case 'n': return action { "Back", states::ENTRYVIEW, states::DBOPEN };
+        case 'y': __m_core.delete_entry(__m_entry);
+        case 'n': return action { "Back", states::entry_view, states::db_open };
       }
   }
 }  // namespace pm

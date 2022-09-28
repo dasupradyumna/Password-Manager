@@ -3,15 +3,13 @@
 
 #include "database.hpp"
 
+#include <filesystem>
+
 namespace pm
 {
-  // global variables
-  inline constexpr std::string_view g_save_dir { "pmsav" };
-  extern std::string g_db_name;
-
   namespace states
   {
-    enum : int { EXIT = -1, TITLE, SETTINGS, SELECTFILE, DBOPEN, ENTRYVIEW, TOTAL };
+    enum : int { exit = -1, title, settings, select_file, db_open, entry_view, total };
   }  // namespace states
 
   struct action {
@@ -57,16 +55,17 @@ namespace pm
 
   class db_open : public screen {
   public:
-    db_open();
+    db_open(database &core_db);
     action get_action(const cursorloc = 0) override;
 
   private:
+    void name_new_database();
     void update_actions();
     action database_input();
 
     selector __m_active;
-    bool __m_focus_db, __m_delete;
-    const std::unique_ptr<database> __m_core;
+    bool __m_focus_db, __m_delete, __m_save;
+    database &__m_core;
 
     friend class application;
   };
@@ -77,7 +76,7 @@ namespace pm
 
     enum : int { VIEW, NEW, EDIT, DELETE };
 
-    entry_view(const std::unique_ptr<database> &core_db);
+    entry_view(database &core_db);
     action get_action(const cursorloc = 0) override;
 
   private:
@@ -87,7 +86,7 @@ namespace pm
 
     view __m_view;
     database::iterator __m_entry;
-    database *const __m_core;
+    database &__m_core;
 
     friend class application;
   };

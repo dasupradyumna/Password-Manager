@@ -9,6 +9,4 @@ namespace pm
       if (__m_data[it].m_title() > __m_data[it + 1].m_title())
         std::swap(__m_data[it], __m_data[it + 1]);
   }
-
-  void reload_database(database &target) { }
 }  // namespace pm
